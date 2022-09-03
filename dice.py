@@ -59,6 +59,23 @@ def lambda_handler(event, context):
                 helper = 0
             else:
                 statistics.append(final)
+    
+    #Add rollCount as simulation value. Used statistics instead of querying back in the dynamodb 
+    for item in statistics: 
+        update_sims = table.update_item(
+            Key={
+                'dice_sum': item[0],
+            },
+            UpdateExpression="SET #rolls = if_not_exists(#rolls, :start) + :increase",
+            ExpressionAttributeValues={
+                ':increase': 1,
+                ':start': 0,
+            },
+            ExpressionAttributeNames={
+                '#rolls': sims,
+            },
+        ReturnValues="UPDATED_NEW"
+            )  
     response = table.scan()
     return {
         'statusCode': 200,
