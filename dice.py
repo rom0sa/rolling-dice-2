@@ -8,14 +8,13 @@ table = dynamodb.Table('dice_results')
 #rollCount = 10
 #dieMaxValue = 6
 #dieMinValue = 1
-def dice_roll():
-    diceRoll = random.randint(dieMinValue,dieMaxValue)
-    return diceRoll
+
     
 def lambda_handler(event, context):
     statistics = []
     helper = 0
     myevent = print(event)
+    ##Still working on this as it's not working as expected. If query paramater was declare it should set the value, if not set a default value. 
     if any('rollCount' in s for s in event):
         rollCount = int(event["params"]["querystring"]["rollCount"])
     else:
@@ -38,6 +37,7 @@ def lambda_handler(event, context):
             die3 = random.randint(dieMinValue,dieMaxValue)
             roll_total = die1 + die2 + die3
             stat = '%ds'% roll_total
+            #Insert the data in dynamodb. If the results exist in the table, increment by one if not add it as a new item with a value of 0 + 1
             perform_update = table.update_item(
                         Key={'dice_sum': stat},
                         UpdateExpression="SET occurrence = if_not_exists(occurrence, :start) + :increase",
@@ -47,6 +47,7 @@ def lambda_handler(event, context):
                         },
                       ReturnValues="UPDATED_NEW"
                       )
+            #This is used in Assignment one to get the number of occurences per results. It is reused to add the rollCount as simulation.
             final = [stat,1]
             if len(statistics) > 0:
                 for i in statistics:
@@ -60,20 +61,8 @@ def lambda_handler(event, context):
             else:
                 statistics.append(final)
     
-    tableparamOccurrence = {'ProjectionExpression':'occurrence'}
-    tableparamDiceSum = {'ProjectionExpression':'dice_sum'}
-    allDiceSum = table.scan(**tableparamDiceSum)
-    allOccurrence = table.scan(**tableparamOccurrence)
-    allDice = allDiceSum
-    allItems = allOccurrence
-    dice = allDice['Items']
-    occur = allItems['Items']
-    total_occurrence = 0
-    for i in occur:
-        mynum = i['occurrence']
-        total_occurrence += mynum
-        
-    #Add rollCount as simulation value. Used statistics instead of querying back in the dynamodb
+    
+    
     for item in statistics: 
         update_sims = table.update_item(
             Key={
@@ -89,6 +78,37 @@ def lambda_handler(event, context):
             },
         ReturnValues="UPDATED_NEW"
             )
+    
+    relativeDistribution()    
+    response = table.scan()
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': response
+    }
+    
+def dice_roll():
+    diceRoll = random.randint(dieMinValue,dieMaxValue)
+    return diceRoll
+
+#Compute for relative distribution    
+def relativeDistribution():
+    tableparamOccurrence = {'ProjectionExpression':'occurrence'}
+    tableparamDiceSum = {'ProjectionExpression':'dice_sum'}
+    allDiceSum = table.scan(**tableparamDiceSum)
+    allOccurrence = table.scan(**tableparamOccurrence)
+    allDice = allDiceSum
+    allItems = allOccurrence
+    dice = allDice['Items']
+    occur = allItems['Items']
+    total_occurrence = 0
+    #Sum all occurences of dice results
+    for i in occur:
+        mynum = i['occurrence']
+        total_occurrence += mynum
+    
+    #Get the occurences value per item then divide it by the total_occurence to get the relative distribution.
+    ##I tried to do this during the first update_item but dynamodb UpdateExpression does not yet support division.
     for diceSum in dice:
         getItem = table.get_item(
         Key={
@@ -109,10 +129,3 @@ def lambda_handler(event, context):
             },
         ReturnValues="UPDATED_NEW"
             )
-        
-    response = table.scan()
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'application/json'},
-        'body': response
-    }
