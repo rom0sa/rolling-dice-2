@@ -60,7 +60,20 @@ def lambda_handler(event, context):
             else:
                 statistics.append(final)
     
-    #Add rollCount as simulation value. Used statistics instead of querying back in the dynamodb 
+    tableparamOccurrence = {'ProjectionExpression':'occurrence'}
+    tableparamDiceSum = {'ProjectionExpression':'dice_sum'}
+    allDiceSum = table.scan(**tableparamDiceSum)
+    allOccurrence = table.scan(**tableparamOccurrence)
+    allDice = allDiceSum
+    allItems = allOccurrence
+    dice = allDice['Items']
+    occur = allItems['Items']
+    total_occurrence = 0
+    for i in occur:
+        mynum = i['occurrence']
+        total_occurrence += mynum
+        
+    #Add rollCount as simulation value. Used statistics instead of querying back in the dynamodb
     for item in statistics: 
         update_sims = table.update_item(
             Key={
@@ -75,7 +88,28 @@ def lambda_handler(event, context):
                 '#rolls': sims,
             },
         ReturnValues="UPDATED_NEW"
-            )  
+            )
+    for diceSum in dice:
+        getItem = table.get_item(
+        Key={
+            'dice_sum': diceSum['dice_sum'],
+        }
+        )
+        occurValue = int(getItem['Item']['occurrence'])
+        relativeValue = (occurValue / float(total_occurrence)) * 100
+        percentageRV = '{:.2f}'.format(relativeValue)
+        #percentageRV = '%d%%' % format_percent
+        update_rv = table.update_item(
+            Key={
+                'dice_sum': diceSum['dice_sum'],
+            },
+            UpdateExpression="SET percentRelativeDistribution = :rdValue",
+            ExpressionAttributeValues={
+                ':rdValue': percentageRV
+            },
+        ReturnValues="UPDATED_NEW"
+            )
+        
     response = table.scan()
     return {
         'statusCode': 200,
