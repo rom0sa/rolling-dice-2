@@ -1,0 +1,20 @@
+# Terraform files
+terraform/.terraform/*
+terraform/.terraform.lock.hcl
+# tf states
+terraform/*.tfstate
+terraform/*.tfstate.*
+#variables
+terraform/*.tfvars
+terraform/providers.tf
+terraform/*.zip
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
