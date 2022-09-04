@@ -11,7 +11,7 @@ resource "aws_lambda_function" "lambda_dice_roll" {
         role          = aws_iam_role.lambda_role.arn
         runtime       = "python3.9"
         handler       = "dice.lambda_handler"
-        timeout       = 10
+        timeout       = 60
         depends_on = [
           aws_iam_role_policy_attachment.lambda_logs,
           aws_cloudwatch_log_group.aws_lambda_cloudwatch_logger,
