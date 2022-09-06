@@ -19,4 +19,4 @@ Is a simple dice a application that roll 3 6 sided die. Written in Python and te
   - Add query parameters in Method Request
   - Set the Lambda Function as integration poing in Integration Request
 
-![workflow](https://dice-diagram.s3.us-west-2.amazonaws.com/dice.drawio.svg)
+![workflow](https://dice-diagram.s3.us-west-2.amazonaws.com/dice.draw.svg.svg)
