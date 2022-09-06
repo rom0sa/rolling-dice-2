@@ -6,9 +6,12 @@ dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table('dice_results')
 
 #rollCount = 10
-#dieMaxValue = 6
+#dieSidesCount = 6
 #dieMinValue = 1
 
+def dice_roll(dieSidesCount):
+    diceRoll = random.randint(1,dieSidesCount)
+    return diceRoll
     
 def lambda_handler(event, context):
     statistics = []
@@ -19,23 +22,24 @@ def lambda_handler(event, context):
         rollCount = int(event["params"]["querystring"]["rollCount"])
     else:
         rollCount = 100
-    if any('dieMinValue' in s for s in event):
-        dieMinValue = int(event["params"]["querystring"]["dieMinValue"]) 
+    if any('dieSidesCount' in s for s in event):
+        dieSidesCount = int(event["params"]["querystring"]["dieSidesCount"]) 
     else:
-        dieMinValue = 1
-    if any('dieMaxValue' in s for s in event):
-        dieMaxValue = int(event["params"]["querystring"]["dieMaxValue"]) 
+        dieSidesCount = 6
+    if any('dieCount' in s for s in event):
+        dieCount = int(event["params"]["querystring"]["dieCount"]) 
     else:
-        dieMaxValue = 6
-    print("Number of roll %d, die minimum value %d and die maximum value %d" % (rollCount, dieMinValue, dieMaxValue))
+        dieCount = 3
+    print("Number of roll %d, number of die %d and number of sides of die %d" % (rollCount, dieCount, dieSidesCount))
     print("Rolling 3 dice")
     sims = str(rollCount)
     if rollCount >= 1:
         for i in range(1,rollCount+1):
-            die1 = random.randint(dieMinValue,dieMaxValue)
-            die2 = random.randint(dieMinValue,dieMaxValue)
-            die3 = random.randint(dieMinValue,dieMaxValue)
-            roll_total = die1 + die2 + die3
+            roll_total = 0
+            for x in range(1,dieCount+1):
+            x = dice_roll(max)
+            roll_total += x 
+
             stat = '%ds'% roll_total
             #Insert the data in dynamodb. If the results exist in the table, increment by one if not add it as a new item with a value of 0 + 1
             perform_update = table.update_item(
@@ -87,9 +91,6 @@ def lambda_handler(event, context):
         'body': response
     }
     
-def dice_roll():
-    diceRoll = random.randint(dieMinValue,dieMaxValue)
-    return diceRoll
 
 #Compute for relative distribution    
 def relativeDistribution():

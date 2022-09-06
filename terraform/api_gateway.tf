@@ -21,8 +21,8 @@ resource "aws_api_gateway_method" "apigw_rest_method" {
   request_parameters = {
     "method.request.path.proxy" = false
     "method.request.querystring.rollCount" = false
-    "method.request.querystring.dieMinValue" = false
-    "method.request.querystring.dieMaxValue" = false
+    "method.request.querystring.dieCount" = false
+    "method.request.querystring.dieSidesCount" = false
   }
 }
 
