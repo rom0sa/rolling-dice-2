@@ -37,7 +37,7 @@ def lambda_handler(event, context):
         for i in range(1,rollCount+1):
             roll_total = 0
             for x in range(1,dieCount+1):
-            x = dice_roll(max)
+            x = dice_roll(dieSidesCount)
             roll_total += x 
 
             stat = '%ds'% roll_total
